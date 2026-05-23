@@ -9,6 +9,7 @@
         "@mantine/form": "^9.2.1",
         "@mantine/hooks": "^9.2.1",
         "html-to-image": "^1.11.13",
+        "pantone-colors": "^1.0.3",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
       },
@@ -354,6 +355,8 @@
     "p-limit": ["p-limit@3.1.0", "", { "dependencies": { "yocto-queue": "^0.1.0" } }, "sha512-TYOanM3wGwNGsZN2cVTYPArw454xnXj5qmWF1bEoAc4+cU/ol7GVh7odevjp1FNHduHc3KZMcFduxU5Xc6uJRQ=="],
 
     "p-locate": ["p-locate@5.0.0", "", { "dependencies": { "p-limit": "^3.0.2" } }, "sha512-LaNjtRWUBY++zB5nE/NwcaoMylSPk+S+ZHNB1TzdbMJMny6dynpAGt7X/tl/QYq3TIeE6nxHppbo2LGymrG5Pw=="],
+
+    "pantone-colors": ["pantone-colors@1.0.3", "", {}, "sha512-RL0b1veIfvtbp4J3iYCFh3/VEwkfzV1aM2w9IwVzEQ5c6NDlO6pZaWRbGH8hpD5TPKeahH28/pVzwv+qQsYcNw=="],
 
     "path-exists": ["path-exists@4.0.0", "", {}, "sha512-ak9Qy5Q7jYb2Wwcey5Fpvg2KoAc/ZIhLSLOSBmRmygPsGwkVVt0fZa0qrtMz+m6tJTAHfZQ8FnmB4MG4LWy7/w=="],
 

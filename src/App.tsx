@@ -1,12 +1,16 @@
-import { type ClipboardEvent, useEffect, useRef, useState } from 'react'
+import React, { type ClipboardEvent, useEffect, useRef, useState } from 'react'
+import { PantoneSelect } from './PantoneSelect'
 import {
   Accordion,
   Alert,
   AppShell,
   Button,
+  ColorInput,
   Group,
   Paper,
   ScrollArea,
+  Select,
+  Slider,
   Stack,
   Text,
   TextInput,
@@ -24,6 +28,10 @@ type FlyerFormValues = {
   info: string
   centerImage: string
   backgroundImage: string
+  fontColor: string
+  backgroundColor: string
+  bgImageOpacity: number
+  bgImageBlend: string
 }
 
 type ImageField = 'centerImage' | 'backgroundImage'
@@ -37,6 +45,10 @@ const DEFAULT_FLYER_VALUES: FlyerFormValues = {
   info: 'JUEVES    26    MAR    7:00PM\nUbi      por      DM      $100\nLEÓN             GUANAJUATO',
   centerImage: '',
   backgroundImage: '',
+  fontColor: '#f6f3eb',
+  backgroundColor: '#5b9bce',
+  bgImageOpacity: 1,
+  bgImageBlend: 'normal',
 }
 
 const fields = Object.keys(DEFAULT_FLYER_VALUES) as (keyof FlyerFormValues)[]
@@ -50,8 +62,11 @@ function normalizeStoredValues(value: unknown): FlyerFormValues {
   const merged = { ...DEFAULT_FLYER_VALUES }
 
   for (const field of fields) {
-    if (typeof stored[field] === 'string') {
-      merged[field] = stored[field]
+    const val = stored[field]
+    if (typeof val === 'string') {
+      merged[field] = val as never
+    } else if (typeof val === 'number' && typeof merged[field] === 'number') {
+      merged[field] = val as never
     }
   }
 
@@ -218,7 +233,7 @@ function App() {
 
     try {
       const dataUrl = await toPng(previewRef.current, {
-        backgroundColor: '#5d99c9',
+        backgroundColor: values.backgroundColor,
         cacheBust: true,
         width: FLYER_W,
         height: FLYER_H,
@@ -303,6 +318,10 @@ function App() {
                     minRows={4}
                     {...form.getInputProps('info')}
                   />
+                  <ColorInput label="Font color" withEyeDropper {...form.getInputProps('fontColor')} />
+                  <PantoneSelect onChange={(c) => form.setFieldValue('fontColor', c)} />
+                  <ColorInput label="Background color" {...form.getInputProps('backgroundColor')} />
+                  <PantoneSelect onChange={(c) => form.setFieldValue('backgroundColor', c)} />
                 </Stack>
               </Accordion.Panel>
             </Accordion.Item>
@@ -321,6 +340,25 @@ function App() {
                     'Background image',
                     'A texture or full-bleed image fills the flyer surface.',
                   )}
+                  <div>
+                    <Text size="sm" fw={500} mb={4}>Background image opacity</Text>
+                    <Slider
+                      min={0}
+                      max={1}
+                      step={0.01}
+                      {...form.getInputProps('bgImageOpacity')}
+                    />
+                  </div>
+                  <Select
+                    label="Background image blend mode"
+                    data={[
+                      'normal', 'multiply', 'screen', 'overlay',
+                      'darken', 'lighten', 'color-dodge', 'color-burn',
+                      'hard-light', 'soft-light', 'difference', 'exclusion',
+                      'hue', 'saturation', 'color', 'luminosity',
+                    ]}
+                    {...form.getInputProps('bgImageBlend')}
+                  />
                 </Stack>
               </Accordion.Panel>
             </Accordion.Item>
@@ -347,12 +385,20 @@ function App() {
             style={{
               transform: `scale(${scale})`,
               transformOrigin: 'center center',
-              ...(values.backgroundImage
-                ? { backgroundImage: `linear-gradient(rgba(63, 128, 183, 0.24), rgba(63, 128, 183, 0.24)), url(${values.backgroundImage})` }
-                : {}),
+              color: values.fontColor,
+              backgroundColor: values.backgroundColor,
             }}
           >
-            <div className="flyer-noise" aria-hidden="true" />
+            {values.backgroundImage && (
+              <div
+                className="flyer-bg-image"
+                style={{
+                  backgroundImage: `url(${values.backgroundImage})`,
+                  opacity: values.bgImageOpacity,
+                  mixBlendMode: values.bgImageBlend as React.CSSProperties['mixBlendMode'],
+                }}
+              />
+            )}
             <div className="flyer-content">
               <header ref={headerRef} className="flyer-header">
                 <h2>{values.title}</h2>
