@@ -26,8 +26,6 @@ type FlyerFormValues = {
   subtitleLeft: string
   subtitleRight: string
   info: string
-  centerImage: string
-  backgroundImage: string
   fontColor: string
   backgroundColor: string
   bgImageOpacity: number
@@ -37,18 +35,18 @@ type FlyerFormValues = {
 type ImageField = 'centerImage' | 'backgroundImage'
 
 const STORAGE_KEY = 'konamigxs-flyer-form'
+const CENTER_IMAGE_KEY = 'konamigxs-flyer-centerImage'
+const BG_IMAGE_KEY = 'konamigxs-flyer-backgroundImage'
 
 const DEFAULT_FLYER_VALUES: FlyerFormValues = {
   title: 'AfroStreetStyles',
-  subtitleLeft: 'Sesión Principiante',
-  subtitleRight: 'Enrique',
-  info: 'JUEVES    26    MAR    7:00PM\nUbi      por      DM      $100\nLEÓN             GUANAJUATO',
-  centerImage: '',
-  backgroundImage: '',
-  fontColor: '#f6f3eb',
-  backgroundColor: '#5b9bce',
-  bgImageOpacity: 1,
-  bgImageBlend: 'normal',
+  subtitleLeft: 'Clase',
+  subtitleRight: 'Laura Morales',
+  info: 'DOMINGO 24 MAY 9:30AM\nParque México $100\nNivel Principiante',
+  fontColor: '#723f0a',
+  backgroundColor: '#ffd3aa',
+  bgImageOpacity: 0.71,
+  bgImageBlend: 'darken',
 }
 
 const fields = Object.keys(DEFAULT_FLYER_VALUES) as (keyof FlyerFormValues)[]
@@ -120,6 +118,12 @@ function App() {
   const [handleTop, setHandleTop] = useState(0)
   const [message, setMessage] = useState('Paste an image into a panel or use the paste buttons.')
   const [isExporting, setIsExporting] = useState(false)
+  const [centerImage, setCenterImage] = useState<string>(
+    () => localStorage.getItem(CENTER_IMAGE_KEY) ?? '',
+  )
+  const [backgroundImage, setBackgroundImage] = useState<string>(
+    () => localStorage.getItem(BG_IMAGE_KEY) ?? '',
+  )
   const form = useForm<FlyerFormValues>({
     initialValues: readStoredValues(),
   })
@@ -132,6 +136,14 @@ function App() {
       console.warn('Unable to save flyer values to localStorage.')
     }
   }, [values])
+
+  useEffect(() => {
+    localStorage.setItem(CENTER_IMAGE_KEY, centerImage)
+  }, [centerImage])
+
+  useEffect(() => {
+    localStorage.setItem(BG_IMAGE_KEY, backgroundImage)
+  }, [backgroundImage])
 
   useEffect(() => {
     const el = stageRef.current
@@ -170,7 +182,8 @@ function App() {
 
   const setImageFromBlob = async (field: ImageField, blob: Blob) => {
     const dataUrl = await blobToDataUrl(blob)
-    form.setFieldValue(field, dataUrl)
+    if (field === 'centerImage') setCenterImage(dataUrl)
+    else setBackgroundImage(dataUrl)
     setMessage(field === 'centerImage' ? 'Center image updated.' : 'Background image updated.')
   }
 
@@ -214,13 +227,18 @@ function App() {
   }
 
   const clearImage = (field: ImageField) => {
-    form.setFieldValue(field, '')
+    if (field === 'centerImage') setCenterImage('')
+    else setBackgroundImage('')
     setMessage(field === 'centerImage' ? 'Center image cleared.' : 'Background image cleared.')
   }
 
   const resetFlyer = () => {
     window.localStorage.removeItem(STORAGE_KEY)
+    window.localStorage.removeItem(CENTER_IMAGE_KEY)
+    window.localStorage.removeItem(BG_IMAGE_KEY)
     form.setValues(DEFAULT_FLYER_VALUES)
+    setCenterImage('')
+    setBackgroundImage('')
     setMessage('Flyer reset to defaults.')
   }
 
@@ -269,8 +287,8 @@ function App() {
             {description}
           </Text>
         </div>
-        {values[field] ? (
-          <img className="paste-thumb" src={values[field]} alt={`${title} preview`} />
+        {(field === 'centerImage' ? centerImage : backgroundImage) ? (
+          <img className="paste-thumb" src={field === 'centerImage' ? centerImage : backgroundImage} alt={`${title} preview`} />
         ) : (
           <div className="paste-empty">Focus here and paste an image</div>
         )}
@@ -312,6 +330,12 @@ function App() {
                   <TextInput label="Title" {...form.getInputProps('title')} />
                   <TextInput label="Left subtitle" {...form.getInputProps('subtitleLeft')} />
                   <TextInput label="Right subtitle" {...form.getInputProps('subtitleRight')} />
+                  <Select
+                    placeholder="Profe…"
+                    data={['Laura Morales', 'Daff', 'La Diabla', 'Cas']}
+                    clearable
+                    onChange={(val) => { if (val) form.setFieldValue('subtitleRight', val) }}
+                  />
                   <Textarea
                     label="Info block"
                     autosize
@@ -389,11 +413,11 @@ function App() {
               backgroundColor: values.backgroundColor,
             }}
           >
-            {values.backgroundImage && (
+            {backgroundImage && (
               <div
                 className="flyer-bg-image"
                 style={{
-                  backgroundImage: `url(${values.backgroundImage})`,
+                  backgroundImage: `url(${backgroundImage})`,
                   opacity: values.bgImageOpacity,
                   mixBlendMode: values.bgImageBlend as React.CSSProperties['mixBlendMode'],
                 }}
@@ -416,8 +440,8 @@ function App() {
               className="flyer-image-frame"
               style={{ top: imageFrameTop, left: '50%', transform: 'translate(-50%, -50%)' }}
             >
-              {values.centerImage ? (
-                <img src={values.centerImage} alt="Center flyer visual" />
+              {centerImage ? (
+                <img src={centerImage} alt="Center flyer visual" />
               ) : (
                 <div className="flyer-image-placeholder">Paste center image</div>
               )}
